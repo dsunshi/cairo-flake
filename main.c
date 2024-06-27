@@ -1,175 +1,147 @@
-//---------------------------------------------------------------------
-//  Name:       HelloSDL2.cpp
-//  Author:     EAML
-//  Date:       2021-05-16
-// 
-//  Description:    
-//      A minimal PoC for producing a native SDL2 Windows app that can
-//      be ran from either Windows Explorer or from Powershell console.
-//      It's designed to use minimal command line, compiler options, 
-//      and dependencies... It will display a gray window for 2 sec's.
-//
-//  Dependencies:
-//      [1] LLVM Clang++ compiler package
-//      [2] SDL2 Libraries (DLL's) and Header files (*.h)
-//      [3] TTF Libraries (DLL's) and Header files (*.h)
-// 
-//  Notes: 
-//      There is a slight variation in the bahaviour, depending on: 
-//      (a) if you compile as a Windows GUI:  the text will not show.
-//      (b) if you compile as a console CLI:  text will show in both terminal and/or in a 2nd new window
-//      (c) You may need to use "main()" for console and "WinMain()" for GUI...
-//      (c) to install on Linux, use packages:  clang, libsdl2-dev
-//      (d) Someone said: #define SDL_MAIN_HANDLED ...
-//
-//  To Run: 
-//      cp .\SDL2\lib\x64\SDL2.dll C:\Windows\.     # For SDL2
-//      cp .\SDL2_ttf\lib\x64\*.dll C:\Windows\.    # For SDL2 TTF
-//      cp C:\Windows\Fonts\arial.ttf .             # Get a font...
-// 
-//  For a CLI version, with console output in 2nd Window:
-//  # clang++.exe -std=c++17 main.cpp -o main.exe -L .\SDL2\lib\x64\ -L .\SDL2_ttf\lib\x64\ -I .\SDL2_ttf\include\ -I .\SDL2\include\ -lShell32 -lSDL2main -lSDL2 -lSDL2_ttf -Wno-narrowing -Xlinker /subsystem:console
-//
-//  For a GUI version, without any console output:
-//  # clang++.exe -std=c++17 main.cpp -o main.exe -L .\SDL2\lib\x64\ -L .\SDL2_ttf\lib\x64\ -I .\SDL2_ttf\include\ -I .\SDL2\include\ -lShell32 -lSDL2main -lSDL2 -lSDL2_ttf -Wno-narrowing -Xlinker /subsystem:windows
-// 
-//  References:
-//      [1] https://github.com/llvm/llvm-project/releases
-//      [2] http://www.libsdl.org/release/SDL2-devel-2.0.14-VC.zip
-//      [3] https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.15-VC.zip
-//      [4] https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf.html
-//      [5] http://www.sdltutorials.com/sdl-ttf
-//      [6] https://www.libsdl.org/release/SDL-1.2.15/docs/html/sdlevent.html
-//      [7] https://stackoverflow.com/q/67559556/
-//---------------------------------------------------------------------
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-/* #include "SDL2/include/SDL.h" */
-/* #include "SDL2_ttf/include/SDL_ttf.h" */
+/*
+ * Copyright (c) 2018, 2019 Amine Ben Hassouna <amine.benhassouna@gmail.com>
+ * All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any
+ * person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the
+ * Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice
+ * shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ * ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+ * SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+ * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
 
 #include <stdio.h>
-#include <cstdio>
-#include <string>
-#include <sstream>
+#include <stdbool.h>
 
-#define SCREEN_WIDTH    640
-#define SCREEN_HEIGHT   480
-#define WINDOW_TITLE    "Hello SDL2!"
-#define WINDOW_TEXT     "Hello World!"
+#include <SDL2/SDL.h>
 
+// Define MAX and MIN macros
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
-// We make a custom stream handler for brievity
-inline std::ostream& operator<<(std::ostream& os, SDL_version const& v) {
-    os << int(v.major) << '.' << int(v.minor) << '.' << int(v.patch);
-    return os;
-}
+// Define screen dimensions
+#define SCREEN_WIDTH    800
+#define SCREEN_HEIGHT   600
 
-std::string getInfo() {
-    SDL_version aa, bb, cc;
-    SDL_VERSION(&aa);
-    SDL_GetVersion(&bb);
-    SDL_TTF_VERSION(&cc);
+int main(int argc, char* argv[])
+{
+    // Unused argc, argv
+    (void) argc;
+    (void) argv;
 
-    std::ostringstream oss;
-    oss << "SDL version  : " << aa << '\n';
-    oss << "SDL linker   : " << bb << '\n';
-    oss << "SDL_TTF ver. : " << cc << '\n';
-    return oss.str();
-}
-
-void drawText ( SDL_Surface* screen, char* string, int size, int x, int y, SDL_Color fgC, SDL_Color bgC) {
-    // Remember to call TTF_Init(), TTF_Quit(), before/after using this function.
-    TTF_Font* font = TTF_OpenFont("arial.ttf", size);
-    if(!font) {
-        printf("[ERROR] TTF_OpenFont() Failed with: %s\n", TTF_GetError());
-        exit(2);
-    }
-    TTF_SetFontStyle(font, TTF_STYLE_BOLD);
-    //SDL_Surface* textSurface = TTF_RenderText_Solid(font, string, fgC);     // aliased glyphs
-    SDL_Surface* textSurface = TTF_RenderText_Shaded(font, string, fgC, bgC);   // anti-aliased glyphs
-    SDL_Rect textLocation = { x, y, 0, 0 };
-    SDL_BlitSurface(textSurface, NULL, screen, &textLocation);
-    SDL_FreeSurface(textSurface);
-    TTF_CloseFont(font);
-    //printf("[ERROR] Unknown error in drawText(): %s\n", TTF_GetError()); return 1;
-}
-
-//---------------------------------------------------------------------
-//  MAIN
-//---------------------------------------------------------------------
-int main(int argc, char* args[]) {
-    
-    SDL_Window* window = NULL;                      // The window we are rendering to
-    SDL_Surface* screenSurface = NULL;              // The surface contained by the window
-    SDL_Event wEvent;                               // Enable the Window Event handler...
-  
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf( "[ERROR] SDL could not initialize! SDL Error: %s\n", SDL_GetError());
-        return 1;
-    }
-    
-    window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if (window == NULL) {
-        printf( "[ERROR] Window could not be created! SDL Error: %s\n", SDL_GetError());
-        return 1;
-    }
-    
-    screenSurface = SDL_GetWindowSurface(window);
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x80, 0x80, 0x80));     // Set a gray background canvas
-    SDL_UpdateWindowSurface(window);
-
-    //-----------------------------------------------------
-    // Draw the Text
-    //-----------------------------------------------------
-    if(TTF_Init() == -1) {
-        printf("[ERROR] TTF_Init() Failed with: %s\n", TTF_GetError());
-        exit(2);
-    }
-    
-    SDL_Color fgC1 = { 0xff,0xff,0xff }, bgC1 = {0x00,0x00,0xa0};                               // white text on blue background
-    SDL_Color fgC2 = { 0x00,0x00,0x00 }, bgC2 = {0xff,0x00,0xff};                               // black text on magenta background
-    drawText( screenSurface, (char*) "Hello World! @ (x=50, y=100)", 18,  50,100, fgC1, bgC1);  // 18 pt @ (x=50,y=100)
-    drawText( screenSurface, (char*) "arial.ttf @ (x=200, y=150)",   16, 200,150, fgC2, bgC2);  // 16 pt @ (x=200,y=150)
-
-    int i=0;
-    const int FSIZE = 12;               // Font Size
-    std::string ver = getInfo();
-    const char *pStr = ver.c_str();     // Convert string to char array
-    
-    //-----------------------------------------------------
-    // Split on '\n' and draw each line further down
-    //-----------------------------------------------------
-    char *tok = strtok( (char*) pStr, "\n");
-    while (tok != NULL) {
-        drawText( screenSurface, (char*) tok, FSIZE, 50, (200 + (FSIZE + 4)*i), fgC1, fgC2);
-        tok = strtok(NULL,"\n");
-        i++;
+    // Initialize SDL
+    if(SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        printf("SDL could not be initialized!\n"
+               "SDL_Error: %s\n", SDL_GetError());
+        return 0;
     }
 
-    SDL_UpdateWindowSurface(window);
-    TTF_Quit();
-    
-    //-----------------------------------------------------
-    // Wait for Events to quit & close the window
-    //-----------------------------------------------------
-    SDL_Delay(1000);  // Wait 1 sec for greasy fingers
-    bool eQuit = false;
-    while (!eQuit) {
-        while(SDL_PollEvent(&wEvent)) {
-            switch (wEvent.type) {
-                case SDL_QUIT:              eQuit = true; break;
-                case SDL_KEYDOWN:           eQuit = true; break;
-                case SDL_MOUSEBUTTONDOWN:   eQuit = true; break;
-                case SDL_WINDOWEVENT_CLOSE: eQuit = true; break;
-            default:
-                //SDL_Log("Window %d got unknown event %d\n", wEvent.window.windowID, wEvent.window.event);
-                break;
-            }
+#if defined linux && SDL_VERSION_ATLEAST(2, 0, 8)
+    // Disable compositor bypass
+    if(!SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0"))
+    {
+        printf("SDL can not disable compositor bypass!\n");
+        return 0;
+    }
+#endif
+
+    // Create window
+    SDL_Window *window = SDL_CreateWindow("Basic C SDL project",
+                                          SDL_WINDOWPOS_UNDEFINED,
+                                          SDL_WINDOWPOS_UNDEFINED,
+                                          SCREEN_WIDTH, SCREEN_HEIGHT,
+                                          SDL_WINDOW_SHOWN);
+    if(!window)
+    {
+        printf("Window could not be created!\n"
+               "SDL_Error: %s\n", SDL_GetError());
+    }
+    else
+    {
+        // Create renderer
+        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        if(!renderer)
+        {
+            printf("Renderer could not be created!\n"
+                   "SDL_Error: %s\n", SDL_GetError());
         }
-        SDL_Delay(100); // Keep < 500 [ms]
+        else
+        {
+            // Declare rect of square
+            SDL_Rect squareRect;
+
+            // Square dimensions: Half of the min(SCREEN_WIDTH, SCREEN_HEIGHT)
+            squareRect.w = MIN(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
+            squareRect.h = MIN(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
+
+            // Square position: In the middle of the screen
+            squareRect.x = SCREEN_WIDTH / 2 - squareRect.w / 2;
+            squareRect.y = SCREEN_HEIGHT / 2 - squareRect.h / 2;
+
+
+            // Event loop exit flag
+            bool quit = false;
+
+            // Event loop
+            while(!quit)
+            {
+                SDL_Event e;
+
+                // Wait indefinitely for the next available event
+                SDL_WaitEvent(&e);
+
+                // User requests quit
+                if(e.type == SDL_QUIT)
+                {
+                    quit = true;
+                }
+
+                // Initialize renderer color white for the background
+                SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+                // Clear screen
+                SDL_RenderClear(renderer);
+
+                // Set renderer color red to draw the square
+                SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+
+                // Draw filled square
+                SDL_RenderFillRect(renderer, &squareRect);
+
+                // Update screen
+                SDL_RenderPresent(renderer);
+            }
+
+            // Destroy renderer
+            SDL_DestroyRenderer(renderer);
+        }
+
+        // Destroy window
+        SDL_DestroyWindow(window);
     }
 
-    SDL_DestroyWindow(window);
+    // Quit SDL
     SDL_Quit();
+
     return 0;
 }
+

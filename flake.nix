@@ -25,7 +25,7 @@
   in {
     devShells.default = pkgs.mkShell rec {
       # Update the name to something that suites your project.
-      name = "my-c++-project";
+      name = "sdl-dev";
 
       packages = with pkgs; [
         # Development Tools
@@ -44,6 +44,10 @@
         xorg.libXrandr
         xorg.libXxf86vm
         xorg.libXext
+        xorg.libXcursor
+        xorg.libXi
+        xorg.libXfixes
+        xorg.libXScrnSaver
       ];
 
       # Setting up the environment variables you need during development.
