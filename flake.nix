@@ -32,22 +32,16 @@
         llvmPackages_14.clang
         stdenv
         pkg-config
-        raylib
-        glfw
-        glew
-        libGLU
-        libGL
-        SDL2
-        SDL2_ttf
-        xorg.libXau
-        xorg.libXdmcp
-        xorg.libXrandr
-        xorg.libXxf86vm
+        cairo
+        glib
+        pcre2 # required by glib
+        pixman
+        freetype
+        libpng
+        xorg.libX11
         xorg.libXext
-        xorg.libXcursor
-        xorg.libXi
-        xorg.libXfixes
-        xorg.libXScrnSaver
+        xorg.libXrender
+        xorg.libXdmcp
       ];
 
       # Setting up the environment variables you need during development.
