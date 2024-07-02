@@ -1,4 +1,4 @@
-#include "balls.h"
+#include "polydraw.h"
 struct Ball balls[num_balls];
 
 static void init_balls(){
