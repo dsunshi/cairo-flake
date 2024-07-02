@@ -33,7 +33,7 @@
         stdenv
         pkg-config
         cairo
-        glib
+        glibc
         pcre2 # required by glib
         pixman
         freetype
