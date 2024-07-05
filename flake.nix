@@ -42,6 +42,8 @@
         xorg.libXext
         xorg.libXrender
         xorg.libXdmcp
+        # Haskell
+        ghc
       ];
 
       # Setting up the environment variables you need during development.

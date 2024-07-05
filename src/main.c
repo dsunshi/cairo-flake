@@ -5,6 +5,8 @@
 static unsigned int canvasWidth  = 0;
 static unsigned int canvasHeight = 0;
 
+extern void setup(void);
+
 void createCanvas(unsigned int width, unsigned int height) {
     canvasWidth  = width;
     canvasHeight = height;
@@ -45,6 +47,8 @@ int main (int argc, char** argv) {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// SETUP
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    setup();
+
     if (0 == canvasWidth || 0 == canvasHeight) {
         /* If either is zero than there is nothing to draw ... */
         fprintf(stderr, "Aborting! The size of the canvas is:\n");
@@ -52,7 +56,6 @@ int main (int argc, char** argv) {
         fprintf(stderr, "Height: %d\n", canvasHeight);
         return 0;
     }
-    createCanvas(400, 400);
 
     const int screen  = DefaultScreen(display);
     Visual *visual    = DefaultVisual(display, screen);  // TODO: Need to check for NULL?
