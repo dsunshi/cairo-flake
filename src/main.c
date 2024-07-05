@@ -1,8 +1,14 @@
+
 #include "polydraw.h"
 
 /* Global state */
-static unsigned int canvasWidth  = 400;
-static unsigned int canvasHeight = 400;
+static unsigned int canvasWidth  = 0;
+static unsigned int canvasHeight = 0;
+
+void createCanvas(unsigned int width, unsigned int height) {
+    canvasWidth  = width;
+    canvasHeight = height;
+}
 
 static int update(double dt) {
     (void) dt;
@@ -36,8 +42,20 @@ int main (int argc, char** argv) {
         return 1;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// SETUP
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (0 == canvasWidth || 0 == canvasHeight) {
+        /* If either is zero than there is nothing to draw ... */
+        fprintf(stderr, "Aborting! The size of the canvas is:\n");
+        fprintf(stderr, "Width: %d\n",  canvasWidth);
+        fprintf(stderr, "Height: %d\n", canvasHeight);
+        return 0;
+    }
+    createCanvas(400, 400);
+
     const int screen  = DefaultScreen(display);
-    Visual *visual    = DefaultVisual(display, screen);
+    Visual *visual    = DefaultVisual(display, screen);  // TODO: Need to check for NULL?
     Drawable drawable = XCreateSimpleWindow(display,
                         DefaultRootWindow(display),
                         0, 0,               /* x, y */
@@ -47,10 +65,14 @@ int main (int argc, char** argv) {
                         0);                 /* background */
     XMapWindow(display, drawable);
 
+    // TODO: Need to check for NULL?
     cairo_surface_t *surface = cairo_xlib_surface_create(display,
                                 drawable, visual,
                                 canvasWidth, canvasHeight);
+
     cairo_xlib_surface_set_size(surface, canvasWidth, canvasHeight);
+
+    // TODO: Need to check for NULL?
     cairo_t* cr = cairo_create(surface);
 
     while(loop(cr, surface)) usleep(WAIT);
