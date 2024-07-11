@@ -25,4 +25,6 @@
     #define DEFAULT_DISPLAY NULL /* On a POSIX-conformant system, if the display_name is NULL, it defaults to the value of the DISPLAY environment variable. */
 #endif
 
+void openWindow(void);
+
 #endif /* POLYDRAW_H */

@@ -1,10 +1,15 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module Draw() where
+module Main(main) where
 
-foreign export ccall setup :: IO ()
+import Foreign
+import Foreign.C.Types
+
+-- foreign export ccall setup :: IO ()
 foreign import ccall "createCanvas" createCanvas :: Int -> Int -> IO ()
+foreign import ccall "openWindow"   openWindow   :: IO ()
 
-setup :: IO ()
-setup = do
-    createCanvas 200 200
+main :: IO ()
+main = do
+    createCanvas 400 400
+    openWindow

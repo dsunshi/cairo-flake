@@ -1,11 +1,10 @@
 
 #include "polydraw.h"
+#include "ffi.h"
 
 /* Global state */
 static unsigned int canvasWidth  = 0;
 static unsigned int canvasHeight = 0;
-
-extern void setup(void);
 
 void createCanvas(unsigned int width, unsigned int height) {
     canvasWidth  = width;
@@ -32,29 +31,27 @@ static int loop(cairo_t* cr,cairo_surface_t* surface){
     return repeat;
 }
 
-int main (int argc, char** argv) {
-    (void) argc;
-    (void) argv;
+void openWindow(void) {
     srand(time(NULL));
 
     Display *display = XOpenDisplay(DEFAULT_DISPLAY);
 
     if (NULL == display) {
         fprintf(stderr, "Unable to open connection to X server");
-        return 1;
+        return;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// SETUP
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    setup();
+    /* setup(); */
 
     if (0 == canvasWidth || 0 == canvasHeight) {
         /* If either is zero than there is nothing to draw ... */
         fprintf(stderr, "Aborting! The size of the canvas is:\n");
         fprintf(stderr, "Width: %d\n",  canvasWidth);
         fprintf(stderr, "Height: %d\n", canvasHeight);
-        return 0;
+        return;
     }
 
     const int screen  = DefaultScreen(display);
@@ -87,6 +84,5 @@ int main (int argc, char** argv) {
 
     XCloseDisplay(display);
 
-  return 0;
 }
 
